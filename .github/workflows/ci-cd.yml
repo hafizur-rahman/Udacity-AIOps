@@ -162,16 +162,14 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to ECR manually
-        run: |
-          echo "ECR_REGISTRY=[$(echo -n '${{ secrets.ECR_REGISTRY }}')]"
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-            | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
         run: |
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
           SHA_TAG="${{ github.sha }}"
+          echo "ECR_REGISTRY=[$(echo -n '${{ secrets.ECR_REGISTRY }}')]"
           docker build -t $IMAGE_URI:$SHA_TAG .
           docker tag $IMAGE_URI:$SHA_TAG $IMAGE_URI:latest
 
@@ -179,6 +177,7 @@ jobs:
         run: |
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
           SHA_TAG="${{ github.sha }}"
+          echo "ECR_REGISTRY=[$(echo -n '${{ secrets.ECR_REGISTRY }}')]"
           docker push $IMAGE_URI:$SHA_TAG
           docker push $IMAGE_URI:latest
 
