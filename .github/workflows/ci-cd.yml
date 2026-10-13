@@ -91,7 +91,9 @@ jobs:
 
       - name: Generate data using DVC
         env:
-          HF_DATASET_ID: financial_phrasebank
+          MODEL_SOURCE: mlflow
+          HF_DATASET_ID: baptle/financial_headlines_market_based
+          HF_MODEL_ID: baptle/FinBERT_market_based
         run: dvc repro
 
       - name: Run Deepchecks
