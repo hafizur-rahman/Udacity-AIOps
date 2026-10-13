@@ -59,7 +59,7 @@ jobs:
       - name: Run tests
         env:
           MODEL_SOURCE: huggingface
-        run: pytest -vv tests/
+        run: pytest -v tests/
 
   # ---------------------------------------------------------
   # 2. DEEPCHECKS JOB
