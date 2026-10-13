@@ -87,6 +87,9 @@ jobs:
         env:
           MODEL_SOURCE: mlflow
           MLFLOW_TRACKING_URI: http://0.0.0.0:5000
+          MLFLOW_EXPERIMENT_NAME: sentiment-eval
+          MODEL_NAME: sentiment
+          MODEL_STAGE: production
         run: |
           python app/main.py &
 
@@ -94,6 +97,9 @@ jobs:
         env:
           MODEL_SOURCE: mlflow
           MLFLOW_TRACKING_URI: http://0.0.0.0:5000
+          MLFLOW_EXPERIMENT_NAME: sentiment-eval
+          MODEL_NAME: sentiment
+          MODEL_STAGE: production
         run: pytest -v tests/
 
   # ---------------------------------------------------------
