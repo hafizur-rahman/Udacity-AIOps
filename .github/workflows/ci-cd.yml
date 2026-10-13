@@ -57,6 +57,24 @@ jobs:
             --default-artifact-root ./mlruns \
             --host 0.0.0.0 &
     
+      - name: Wait for MLflow server to be ready
+        run: |
+          echo "Waiting for MLflow server to be ready..."
+          until curl -s http://localhost:5000/health | grep -q "OK"; do
+            sleep 5
+          done
+          echo "MLflow server is ready."
+
+      - name: Evaluate and register the model using MLflow
+        env:
+          MODEL_SOURCE: huggingface
+          HF_DATASET_ID: baptle/financial_headlines_market_based
+          HF_MODEL_ID: baptle/FinBERT_market_based
+          MLFLOW_TRACKING_URI: http://0.0.0.0:5000
+        run: |
+          python scripts/evaluate.py
+          python scripts/promote.py
+
       - name: Run the API server in the background
         env:
           MODEL_SOURCE: mlflow
