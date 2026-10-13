@@ -60,14 +60,14 @@ jobs:
       - name: Run the API server in the background
         env:
           MODEL_SOURCE: huggingface
-          MLFLOW_TRACKING_URI: http://host.docker.internal:5000
+          MLFLOW_TRACKING_URI: http://0.0.0.0:5000
         run: |
           python app/main.py &
 
       - name: Run tests
         env:
           MODEL_SOURCE: huggingface
-          MLFLOW_TRACKING_URI: http://host.docker.internal:5000
+          MLFLOW_TRACKING_URI: http://0.0.0.0:5000
         run: pytest -v tests/
 
   # ---------------------------------------------------------
