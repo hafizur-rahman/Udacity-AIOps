@@ -8,6 +8,7 @@ Endpoints:
     GET  /metrics         — Prometheus metrics
 """
 
+import datetime
 import json
 
 # (Task 6)
@@ -16,7 +17,6 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-import datetime
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Response
@@ -35,7 +35,7 @@ logger = logging.getLogger("sentiment_api")
 # object containing at least a timestamp, level, and message field.
 def log(level: str, message: str, **kwargs) -> None:
     entry = {
-        "timestamp": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.datetime.now(tz=datetime.UTC).isoformat(),
         "level": level,
         "message": message,
         **kwargs,
