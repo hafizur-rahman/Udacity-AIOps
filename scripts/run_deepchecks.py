@@ -105,14 +105,12 @@ def main():
     test_preds = run_predictions(classifier, test_texts)
     stream_preds = run_predictions(classifier, stream_texts)
 
-    # Attach predictions to datasets
-    test_dataset.predictions = test_preds
-    stream_dataset.predictions = stream_preds
-
     prediction_drift_check = PredictionDrift()
     prediction_drift_result = prediction_drift_check.run(
         train_dataset=test_dataset,
-        test_dataset=stream_dataset
+        test_dataset=stream_dataset,
+        train_predictions=test_preds,
+        test_predictions=stream_preds
     )
 
     prediction_drift_score = prediction_drift_result.value["Drift score"]
