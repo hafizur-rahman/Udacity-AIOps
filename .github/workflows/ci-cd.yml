@@ -169,6 +169,7 @@ jobs:
         run: |
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
           SHA_TAG="${{ github.sha }}"
+          echo "ECR_REGISTRY=[$(echo -n '${{ secrets.ECR_REGISTRY }}')]"
           docker build -t $IMAGE_URI:$SHA_TAG .
           docker tag $IMAGE_URI:$SHA_TAG $IMAGE_URI:latest
 
