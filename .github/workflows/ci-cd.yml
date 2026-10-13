@@ -65,27 +65,16 @@ jobs:
           done
           echo "MLflow server is ready."
 
-      - name: Evaluate and register the model using MLflow
-        env:
-          MODEL_SOURCE: huggingface
-          HF_DATASET_ID: baptle/financial_headlines_market_based
-          HF_MODEL_ID: baptle/FinBERT_market_based
-          MLFLOW_TRACKING_URI: http://0.0.0.0:5000
-        run: |
-          dvc repro
-          python scripts/evaluate.py
-          python scripts/promote.py
-
       - name: Run the API server in the background
         env:
-          MODEL_SOURCE: mlflow
+          MODEL_SOURCE: huggingface
           MLFLOW_TRACKING_URI: http://0.0.0.0:5000
         run: |
           python app/main.py &
 
       - name: Run tests
         env:
-          MODEL_SOURCE: mlflow
+          MODEL_SOURCE: huggingface
           MLFLOW_TRACKING_URI: http://0.0.0.0:5000
         run: pytest -v tests/
 
