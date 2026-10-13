@@ -113,6 +113,8 @@ def main():
         test_predictions=stream_preds
     )
 
+    print(prediction_drift_result.value)
+
     prediction_drift_score = prediction_drift_result.value["Drift score"]
 
     print(f"Prediction Drift Score: {prediction_drift_score:.4f}")
