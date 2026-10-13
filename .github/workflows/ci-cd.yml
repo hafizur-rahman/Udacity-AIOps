@@ -75,6 +75,9 @@ jobs:
           HF_DATASET_ID: baptle/financial_headlines_market_based
           HF_MODEL_ID: baptle/FinBERT_market_based
           MLFLOW_TRACKING_URI: http://0.0.0.0:5000
+          MLFLOW_EXPERIMENT_NAME: sentiment-eval
+          MODEL_NAME: sentiment
+          MODEL_STAGE: production
         run: |
           dvc repro
           python scripts/evaluate.py
