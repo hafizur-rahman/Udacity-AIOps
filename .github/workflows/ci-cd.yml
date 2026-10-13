@@ -1,0 +1,181 @@
+name: test-and-deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  ECR_REPOSITORY: finbert-api
+  TASK_DEFINITION: finbert-api
+  CONTAINER_NAME: finbert-api
+  ECS_SERVICE: finbert-api-service
+  ECS_CLUSTER: finbert-cluster
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check app/ scripts/ tests/
+
+  # ---------------------------------------------------------
+  # 1. TEST JOB
+  # ---------------------------------------------------------
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-
+
+      - run: pip install --upgrade pip
+      - run: pip install -r requirements.txt
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}
+          restore-keys: hf-
+
+      - name: Run tests
+        env:
+          MODEL_SOURCE: huggingface
+        run: pytest -vv tests/
+
+  # ---------------------------------------------------------
+  # 2. DEEPCHECKS JOB
+  # ---------------------------------------------------------
+  deepchecks:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-
+
+      - run: pip install --upgrade pip
+      - run: pip install -r requirements.txt
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}
+          restore-keys: hf-
+
+      - name: Generate data using DVC
+        env:
+          HF_DATASET_ID: financial_phrasebank
+        run: dvc repro
+
+      - name: Run Deepchecks
+        env:
+          MODEL_SOURCE: huggingface
+        run: python scripts/run_deepchecks.py
+
+  # ---------------------------------------------------------
+  # 3. BUILD & PUSH TO ECR
+  # ---------------------------------------------------------
+  build:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+    needs: [test, deepchecks]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
+          SHA_TAG="${{ github.sha }}"
+          docker build -t $IMAGE_URI:$SHA_TAG .
+          docker tag $IMAGE_URI:$SHA_TAG $IMAGE_URI:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
+          SHA_TAG="${{ github.sha }}"
+          docker push $IMAGE_URI:$SHA_TAG
+          docker push $IMAGE_URI:latest
+
+  # ---------------------------------------------------------
+  # 4. DEPLOY TO ECS FARGATE
+  # ---------------------------------------------------------
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Download current ECS task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.TASK_DEFINITION }} \
+            --query taskDefinition \
+            > task-def.json
+
+      - name: Render new task definition with updated image
+        run: |
+          IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+          cat task-def.json \
+            | jq --arg IMAGE_URI "$IMAGE_URI" \
+              '.containerDefinitions[0].image = $IMAGE_URI' \
+            > new-task-def.json
+
+      - name: Register new task definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://new-task-def.json \
+            > register-output.json
+
+      - name: Deploy new task definition to ECS service
+        run: |
+          NEW_REVISION=$(jq -r '.taskDefinition.taskDefinitionArn' register-output.json)
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --task-definition "$NEW_REVISION"
+
+      - name: Wait for ECS service to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }}
