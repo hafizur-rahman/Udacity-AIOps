@@ -50,6 +50,13 @@ jobs:
           key: hf-${{ runner.os }}
           restore-keys: hf-
 
+      - name: Run MLflow server in the background
+        run: |
+          mlflow server \
+            --backend-store-uri sqlite:///mlflow.db \
+            --default-artifact-root ./mlruns \
+            --host 0.0.0.0
+    
       - name: Run the API server in the background
         env:
           MODEL_SOURCE: huggingface
