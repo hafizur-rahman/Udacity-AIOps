@@ -7,8 +7,9 @@ Run:
     python scripts/promote.py
 """
 
-import yaml
 import os
+
+import yaml
 from dotenv import load_dotenv
 from mlflow.tracking import MlflowClient
 

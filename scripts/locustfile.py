@@ -7,7 +7,8 @@ Then open http://localhost:8089 to configure and start the test.
 """
 
 import random
-from locust import HttpUser, task, between
+
+from locust import HttpUser, between, task
 
 SAMPLE_HEADLINES = [
     "The company reported record profits and raised its dividend.",

@@ -53,8 +53,8 @@ def check_model():
         assert result and result[0]["label"] in {"positive", "negative", "neutral"}
         print(f"Model loaded and inference OK  -->  {result[0]}")
         return True
-    except Exception as e:
-        print(f"[FAIL] Model check failed: {e}")
+    except RuntimeError as e:
+        print(f"[FAIL] Model check failed: {e!s}")
         return False
 
 

@@ -8,39 +8,39 @@ Endpoints:
     GET  /metrics         — Prometheus metrics
 """
 
-import os
-from contextlib import asynccontextmanager
-
-from dotenv import load_dotenv
-from fastapi import FastAPI
-from pydantic import BaseModel
-from utils import load_classifier
-from fastapi import HTTPException
+import json
 
 # (Task 6)
 # Configure the Python logger using basicConfig.
 import logging
-import json
-from datetime import datetime
+import os
 import time
+from contextlib import asynccontextmanager
+from datetime import datetime
+
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Response
+from pydantic import BaseModel
+from utils import load_classifier
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(message)s",
 )
 
+logger = logging.getLogger("sentiment_api")
 
 # TODO (Task 6)
 # Implement a structured logging helper that emits each log entry as a JSON
 # object containing at least a timestamp, level, and message field.
 def log(level: str, message: str, **kwargs) -> None:
     entry = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(tz=datetime.timezone.utc).isoformat(),
         "level": level,
         "message": message,
         **kwargs,
     }
-    logging.log(getattr(logging, level.upper()), json.dumps(entry))
+    logger.log(getattr(logging, level.upper()), json.dumps(entry))
 
 
 # TODO (Task 6)
@@ -50,7 +50,7 @@ def log(level: str, message: str, **kwargs) -> None:
 # 3. A Counter for the total number of prediction errors.
 # Then instrument run_predictions() to update each metric accordingly.
 # Documentation: https://prometheus.io/docs/concepts/metric_types/
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 PREDICTION_REQUESTS = Counter(
     "prediction_requests_total",
@@ -153,9 +153,10 @@ def run_predictions_old(texts: list[str]) -> list[PredictionResult]:
     except Exception as e:
         # (Task 6): Increment PREDICTION_ERRORS, log the error using log(),
         # then re-raise.
+        print(f"Prediction error: {e!s}")
         PREDICTION_ERRORS.inc()
         log("ERROR", "Prediction error", error=str(e))
-        raise e
+        raise
 
 def run_predictions(texts: list[str]) -> list[PredictionResult]:
     try:
@@ -200,10 +201,10 @@ def run_predictions(texts: list[str]) -> list[PredictionResult]:
         return prediction_results
 
     except Exception as e:
-        print(f"Prediction error: {str(e)}")
+        print(f"Prediction error: {e!s}")
         PREDICTION_ERRORS.inc()
         log("ERROR", "Prediction error", error=str(e))
-        raise e
+        raise
 
 
 # (Task 6): Implement the /metrics endpoint.
@@ -260,5 +261,5 @@ if __name__ == "__main__":
     uvicorn.run(
         app,
         host=os.getenv("API_HOST", "0.0.0.0"),
-        port=int(os.getenv("API_PORT", 8000)),
+        port=int(os.getenv("API_PORT", "8000")),
     )
