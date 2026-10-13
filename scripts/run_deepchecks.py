@@ -52,13 +52,13 @@ def main():
     # https://docs.deepchecks.com/stable/nlp/usage_guides/text_data_object.html#nlp-textdata-object
     # Create Deepchecks TextData objects
     test_dataset = TextData(
-        data=test_texts,
+        raw_text=test_texts,
         label=test_df["label"].tolist(),
         task_type="text_classification"
     )
 
     stream_dataset = TextData(
-        data=stream_texts,
+        raw_text=stream_texts,
         label=None,
         task_type="text_classification"
     )
