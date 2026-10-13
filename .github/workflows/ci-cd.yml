@@ -50,6 +50,10 @@ jobs:
           key: hf-${{ runner.os }}
           restore-keys: hf-
 
+      - name: Patch the model
+        run: |
+          python scripts/smoke_test.py
+
       - name: Run MLflow server in the background
         run: |
           mlflow server \
@@ -65,16 +69,27 @@ jobs:
           done
           echo "MLflow server is ready."
 
-      - name: Run the API server in the background
+      - name: Evaluate and register the model using MLflow
         env:
           MODEL_SOURCE: huggingface
+          HF_DATASET_ID: baptle/financial_headlines_market_based
+          HF_MODEL_ID: baptle/FinBERT_market_based
+          MLFLOW_TRACKING_URI: http://0.0.0.0:5000
+        run: |
+          dvc repro
+          python scripts/evaluate.py
+          python scripts/promote.py
+
+      - name: Run the API server in the background
+        env:
+          MODEL_SOURCE: mlflow
           MLFLOW_TRACKING_URI: http://0.0.0.0:5000
         run: |
           python app/main.py &
 
       - name: Run tests
         env:
-          MODEL_SOURCE: huggingface
+          MODEL_SOURCE: mlflow
           MLFLOW_TRACKING_URI: http://0.0.0.0:5000
         run: pytest -v tests/
 
