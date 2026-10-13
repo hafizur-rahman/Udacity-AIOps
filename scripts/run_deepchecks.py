@@ -83,7 +83,7 @@ def main():
     print(property_drift_result.value)
 
     # Extract drift score for the "Sentiment" property
-    sentiment_drift_score = property_drift_result.value["Sentiment"]["drift_score"]
+    sentiment_drift_score = property_drift_result.value["Sentiment"]["Drift score"]
 
     print(f"Sentiment Property Drift Score: {sentiment_drift_score:.4f}")
 
@@ -115,7 +115,7 @@ def main():
         test_dataset=stream_dataset
     )
 
-    prediction_drift_score = prediction_drift_result.value["drift_score"]
+    prediction_drift_score = prediction_drift_result.value["Drift score"]
 
     print(f"Prediction Drift Score: {prediction_drift_score:.4f}")
 
