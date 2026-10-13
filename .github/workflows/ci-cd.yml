@@ -98,7 +98,9 @@ jobs:
 
       - name: Run Deepchecks
         env:
-          MODEL_SOURCE: huggingface
+          MODEL_SOURCE: mlflow
+          HF_DATASET_ID: baptle/financial_headlines_market_based
+          HF_MODEL_ID: baptle/FinBERT_market_based
         run: python scripts/run_deepchecks.py
 
   # ---------------------------------------------------------
