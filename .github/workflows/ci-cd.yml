@@ -50,6 +50,12 @@ jobs:
           key: hf-${{ runner.os }}
           restore-keys: hf-
 
+      - name: Run the API server in the background
+        env:
+          MODEL_SOURCE: huggingface
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+
       - name: Run tests
         env:
           MODEL_SOURCE: huggingface
