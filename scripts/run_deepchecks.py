@@ -80,6 +80,8 @@ def main():
         test_dataset=stream_dataset
     )
 
+    print(property_drift_result.value)
+
     # Extract drift score for the "Sentiment" property
     sentiment_drift_score = property_drift_result.value["Sentiment"]["drift_score"]
 
