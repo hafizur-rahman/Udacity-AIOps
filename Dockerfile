@@ -14,10 +14,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Create working directory
-WORKDIR /app
+WORKDIR /prediction-api
 
 # Copy project files
-COPY . /app
+COPY /app /app
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip \
