@@ -37,6 +37,7 @@ RUN pip install --upgrade pip \
 COPY /app ./app
 COPY /data ./data
 COPY /scripts ./scripts/
+COPY mlruns/ ./app/mlruns/
 
 RUN python scripts/smoke_test.py && \
     python scripts/evaluate.py && \

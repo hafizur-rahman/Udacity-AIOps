@@ -102,6 +102,12 @@ jobs:
           MODEL_STAGE: production
         run: pytest -v tests/
 
+      - name: Upload MLflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: finbert-mlflow-artifacts
+          path: mlruns/
+
   # ---------------------------------------------------------
   # 2. DEEPCHECKS JOB
   # ---------------------------------------------------------
@@ -153,6 +159,12 @@ jobs:
     needs: [test, deepchecks]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download MLflow artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: finbert-mlflow-artifacts
+          path: mlruns/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
