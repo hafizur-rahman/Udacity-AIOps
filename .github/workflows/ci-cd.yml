@@ -178,6 +178,13 @@ jobs:
           name: dvc-data-artifacts
           path: data/
 
+      - name: Run MLflow server in the background
+        run: |
+          mlflow server \
+            --backend-store-uri sqlite:///mlflow.db \
+            --default-artifact-root ./mlruns \
+            --host 0.0.0.0 &
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
