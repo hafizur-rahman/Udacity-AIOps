@@ -1,0 +1,23 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore virtual environments
+venv/
+.env/
+
+# Ignore local development files
+*.log
+*.sqlite
+
+# Ignore Git repo
+.git/
+.gitignore
+
+# Ignore OS junk
+.DS_Store
+
+# Ignore large directories
+data/
+notebooks/
+tests/
