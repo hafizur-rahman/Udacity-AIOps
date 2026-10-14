@@ -222,7 +222,16 @@ jobs:
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
           cat task-def.json \
             | jq --arg IMAGE_URI "$IMAGE_URI" \
-              '.containerDefinitions[0].image = $IMAGE_URI' \
+              '.containerDefinitions[0].image = $IMAGE_URI \
+              | del(
+                  .taskDefinitionArn,
+                  .revision,
+                  .status,
+                  .requiresAttributes,
+                  .compatibilities,
+                  .registeredAt,
+                  .registeredBy
+                )' \
             > new-task-def.json
 
       - name: Register new task definition
