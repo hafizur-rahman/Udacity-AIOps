@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /prediction-api
 
 # Copy project files
-COPY /app /app
+COPY /app ./app
 COPY requirements.txt .
 
 # Install Python dependencies
