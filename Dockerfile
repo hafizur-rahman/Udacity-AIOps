@@ -34,9 +34,9 @@ RUN pip install --upgrade pip \
     && pip install -r requirements.txt
 
 # Copy project files
-COPY /app ./app
-COPY /data ./data
-COPY /scripts ./scripts/
+COPY app ./app
+COPY data ./data
+COPY scripts ./scripts/
 COPY mlruns/ ./app/mlruns/
 
 RUN python scripts/smoke_test.py && \
