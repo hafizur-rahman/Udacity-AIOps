@@ -11,6 +11,16 @@
 
 services:
 
+  mlflow:
+    image: mlflow:2.9.1
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns
+    command: mlflow server \
+            --default-artifact-root ./mlruns \
+            --host 0.0.0.0
+
   api:
     build:
       context: .

@@ -7,6 +7,17 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+ENV MLFLOW_TRACKING_URI="http://host.docker.internal:5000"
+ENV MLFLOW_EXPERIMENT_NAME="sentiment-eval"
+
+ENV MODEL_NAME="sentiment"
+ENV MODEL_STAGE="production"
+ENV MODEL_SOURCE="mlflow"
+
+ENV HF_MODEL_ID="baptle/FinBERT_market_based"
+ENV HF_DATASET_ID="baptle/financial_headlines_market_based"
+
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -16,13 +27,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create working directory
 WORKDIR /prediction-api
 
-# Copy project files
-COPY /app ./app
 COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt
+
+# Copy project files
+COPY /app ./app
+COPY /data ./data
+COPY /scripts ./scripts/
+
+RUN python scripts/smoke_test.py && \
+    python scripts/evaluate.py && \
+    python scripts/promote.py
 
 # Expose API port
 EXPOSE 8000
