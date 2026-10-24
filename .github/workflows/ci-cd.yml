@@ -211,14 +211,23 @@ jobs:
       - name: Build Docker image
         run: |
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
-
+          SHA_TAG="${{ github.sha }}"
+          
+          echo "Using IMAGE_URI=$IMAGE_URI"
+          
           docker build -t "${{ env.ECR_REPOSITORY }}" .
+          
+          docker tag "${{ env.ECR_REPOSITORY }}":latest $IMAGE_URI:$SHA_TAG
           docker tag "${{ env.ECR_REPOSITORY }}":latest $IMAGE_URI:latest
 
       - name: Push Docker image to ECR
         run: |
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
+          SHA_TAG="${{ github.sha }}"
+          
+          echo "Using IMAGE_URI=$IMAGE_URI"
 
+          docker push $IMAGE_URI:$SHA_TAG
           docker push $IMAGE_URI:latest
 
   # ---------------------------------------------------------
