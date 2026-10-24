@@ -108,10 +108,16 @@ jobs:
           name: dvc-data-artifacts
           path: data/
 
-      - name: Upload MLflow artifacts
+      - name: Upload mlruns
         uses: actions/upload-artifact@v4
         with:
-          name: finbert-mlflow-artifacts
+          name: finbert-mlruns
+          path: mlruns/
+      
+      - name: Upload mlartifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: finbert-mlartifacts
           path: mlruns/
 
   # ---------------------------------------------------------
@@ -166,11 +172,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download MLflow artifacts
+      - name: Download mlruns
         uses: actions/download-artifact@v4
         with:
-          name: finbert-mlflow-artifacts
+          name: finbert-mlruns
           path: mlruns/
+
+      - name: Download mlartifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: finbert-mlartifacts
+          path: mlartifacts/
 
       - name: Download Data artifacts
         uses: actions/download-artifact@v4

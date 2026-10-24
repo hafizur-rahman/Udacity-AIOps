@@ -7,7 +7,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-ENV MLFLOW_TRACKING_URI="http://0.0.0.0:5000"
+# ENV MLFLOW_TRACKING_URI="http://0.0.0.0:5000"
 ENV MLFLOW_EXPERIMENT_NAME="sentiment-eval"
 
 ENV MODEL_NAME="sentiment"
@@ -35,13 +35,10 @@ RUN pip install --upgrade pip \
 
 # Copy project files
 COPY app ./app
-COPY data ./data
-COPY scripts ./scripts/
-COPY mlruns/ ./app/mlruns/
 
-RUN python scripts/smoke_test.py && \
-    python scripts/evaluate.py && \
-    python scripts/promote.py
+COPY data ./data
+COPY mlruns/ ./app/mlruns/
+COPY mlartifacts/ ./app/mlartifacts/
 
 # Expose API port
 EXPOSE 8000
