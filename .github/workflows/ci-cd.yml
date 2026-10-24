@@ -178,6 +178,15 @@ jobs:
           name: dvc-data-artifacts
           path: data/
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install MLflow
+        run: |
+          pip install mlflow
+
       - name: Run MLflow server in the background
         run: |
           mlflow server \
