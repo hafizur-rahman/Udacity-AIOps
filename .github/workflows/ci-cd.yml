@@ -218,6 +218,8 @@ jobs:
           fi
 
       - name: Build Docker image
+        env:
+          MLFLOW_TRACKING_URI: "http://host.docker.internal:5000"
         run: |
           IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
           SHA_TAG="${{ github.sha }}"
